@@ -1,23 +1,54 @@
 "use client";
-
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { EmailIcon, PasswordIcon } from "@/assets/icons";
-//import { signIn } from "@/lib/auth/auth-client";
-import Link from "next/link";
-//import { useRouter, useSearchParams } from "next/navigation";
-//import React, { useState } from "react";
-//import { toast } from "sonner";
 import InputGroup from "../FormElements/InputGroup";
-import { Checkbox } from "../FormElements/checkbox";
+import { login } from "@/lib/auth-service";
 
 export default function SigninWithPassword() {
-  /**
-   * Définir la logique de connexion ici 
-   */
+  const router = useRouter();
+
+  // ===== ÉTAT DU FORMULAIRE =====
+  const [matricule, setMatricule] = useState("");
+  const [password, setPassword] = useState("");
+
+  // ===== ÉTAT DE L'UI =====
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // ===== SOUMISSION DU FORMULAIRE =====
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!matricule || !password) {
+      setError("Veuillez remplir tous les champs");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await login({ matricule, password });
+
+      if (response.status === 200) {
+        router.push("/espace");
+      } else {
+        setError(response.message || "Identifiants invalides");
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Erreur de connexion. Vérifiez votre réseau."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    // formutlaire de connexion 
-    <form >
-      {/* deux input pour l'identifiant et le mot de passe */}
+    <form onSubmit={handleSubmit}>
       <InputGroup
         type="email"
         label="matricule"
@@ -25,6 +56,8 @@ export default function SigninWithPassword() {
         placeholder="Entrez votre matricule"
         name="email"
         icon={<EmailIcon />}
+        value={matricule}
+        onChange={(e) => setMatricule(e.target.value)}
       />
 
       <InputGroup
@@ -34,36 +67,25 @@ export default function SigninWithPassword() {
         placeholder="Entrez votre mot de passe"
         name="password"
         icon={<PasswordIcon />}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
       />
-{/* checkbox pour que l'utilisateur n'ait pas à tt le temps se connecter */}
-      <div className="mb-6 flex items-center justify-between gap-2 py-2 font-medium">
-        <Checkbox
-          label="se souvenir de moi"
-          name="remember"
-          withIcon="check"
-          minimal
-          radius="md"
 
-        />
+      {error && (
+        <p className="text-red-500 mb-4 text-sm">
+          {error}
+        </p>
+      )}
 
-        <Link
-          href="/"
-          className="text-[#0f2e25] outline-0 hover:underline"
-        >
-          Mot de passe oublié ?
-        </Link>
-      </div>
-{/*  bouton se connecter */}
       <div className="mb-4.5">
         <button
           type="submit"
+          disabled={loading}
           className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#0f2e25] p-4 font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          Se connecter
+          {loading ? "Connexion..." : "Se connecter"}
         </button>
       </div>
     </form>
   );
-  
-
 }
