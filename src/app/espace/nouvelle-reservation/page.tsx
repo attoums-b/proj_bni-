@@ -83,10 +83,8 @@ export default function NouvelleReservationPage() {
       sessionStorage.setItem("reservationDraft", JSON.stringify(formData));
 
       if (requestType === "STANDARD") {
-        // Pour STANDARD, on cherche les salles disponibles
         router.push("/espace/nouvelle-reservation/chercher-salles");
       } else {
-        // Pour PARTICULIER, on soumet directement sans choisir de salle
         router.push("/espace/nouvelle-reservation/confirmation");
       }
     } finally {
@@ -96,7 +94,6 @@ export default function NouvelleReservationPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-6">
-      {/* ===== EN-TÊTE ===== */}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-[var(--bni-text)]">
           Nouvelle réservation
@@ -106,7 +103,7 @@ export default function NouvelleReservationPage() {
         </p>
       </div>
 
-      {/* ===== TYPE DE DEMANDE ===== */}
+  
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card
           onClick={() => setRequestType("STANDARD")}
@@ -169,7 +166,6 @@ export default function NouvelleReservationPage() {
         </Card>
       </div>
 
-      {/* ===== INFORMATIONS DE LA RÉSERVATION ===== */}
       <Card>
         <CardHeader>
           <CardTitle>Informations de la réservation</CardTitle>
@@ -192,7 +188,7 @@ export default function NouvelleReservationPage() {
             />
           </div>
 
-          {/* Type d'événement + Nombre de participants */}
+         
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="eventType" className="text-sm font-medium">
@@ -232,7 +228,8 @@ export default function NouvelleReservationPage() {
         </CardContent>
       </Card>
 
-      {/* ===== CRÉNEAU SOUHAITÉ ===== */}
+      
+
       <Card>
         <CardHeader>
           <CardTitle>Créneau souhaité</CardTitle>
@@ -340,7 +337,7 @@ export default function NouvelleReservationPage() {
         </CardContent>
       </Card>
 
-      {/* ===== BOUTONS D'ACTION ===== */}
+      
       <div className="flex items-center justify-end gap-3 pt-2">
         <Button
           type="button"

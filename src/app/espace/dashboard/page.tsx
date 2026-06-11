@@ -57,12 +57,7 @@ export default function TableauDeBordPage() {
         </Button>
       </div>
 
-      {/* ===== GRILLE DES 4 KPI ===== */}
-      {/* CHANGEMENT : auto-fit + minmax(220px, 1fr) */}
-      {/* La grille s'adapte automatiquement à l'espace disponible :
-          - Si la sidebar est fermée et qu'il y a la place → 4 colonnes
-          - Si la sidebar est ouverte et l'espace est trop étroit → 2 colonnes (2x2)
-          - Sur mobile → 1 colonne */}
+
       <div
         className="grid gap-4"
         style={{
@@ -81,16 +76,11 @@ export default function TableauDeBordPage() {
           />
         ))}
       </div>
-
-      {/* ===== SECTION GRAPHIQUES & STATISTIQUES ===== */}
       <div className="mt-12">
         <h2 className="mb-4 text-sm font-medium text-gray-600">
           Graphes & Statistiques
         </h2>
 
-        {/* Même technique pour les graphiques :
-            - 400px minimum par graphique
-            - Si pas la place côte à côte → l'un sous l'autre */}
         <div
           className="grid gap-6"
           style={{
@@ -101,10 +91,7 @@ export default function TableauDeBordPage() {
           <PieChartTopSalles />
         </div>
       </div>
-
-      {/* ===== PLACEHOLDER POUR L'HISTORIQUE ===== */}
       <div className="mt-12">
-        {/* TODO : Historique des réservations */}
       </div>
     </div>
   );

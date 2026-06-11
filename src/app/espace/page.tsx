@@ -3,12 +3,12 @@ import Link from "next/link";
 import { Calendar, ClipboardList, LayoutDashboard } from "lucide-react";
 
 export default function EspacePage() {
-  // Liens rapides affichés sur l'accueil
+
   const liensRapides = [
     {
       titre: "Tableau de bord",
       description: "Vue d'ensemble de l'activité",
-      href: "/espace/tableau-de-bord",
+      href: "/espace/dashboard",
       icon: LayoutDashboard,
     },
     {
@@ -37,7 +37,6 @@ export default function EspacePage() {
         </p>
       </div>
 
-      {/* ===== GRILLE DES LIENS RAPIDES ===== */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {liensRapides.map((lien) => {
           const Icon = lien.icon;

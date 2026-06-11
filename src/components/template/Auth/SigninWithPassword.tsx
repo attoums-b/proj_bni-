@@ -50,14 +50,14 @@ export default function SigninWithPassword() {
   return (
     <form onSubmit={handleSubmit}>
       <InputGroup
-        type="email"
+        type="text"
         label="matricule"
         className="mb-4 [&_input]:py-3.75"
         placeholder="Entrez votre matricule"
-        name="email"
+        name="matricule"
         icon={<EmailIcon />}
         value={matricule}
-        onChange={(e) => setMatricule(e.target.value)}
+        handleChange={(e) => setMatricule(e.target.value)}
       />
 
       <InputGroup
@@ -68,7 +68,7 @@ export default function SigninWithPassword() {
         name="password"
         icon={<PasswordIcon />}
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        handleChange={(e) => setPassword(e.target.value)}
       />
 
       {error && (

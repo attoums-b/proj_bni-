@@ -43,11 +43,11 @@ type DemandeReservation = {
   typeDemande: typeDemande;
 };
 
-// ===== DONNÉES FICTIVES =====
+// (DONNÉES FICTIVES) 
 const demandesFictives: DemandeReservation[] = [
   {
     idReservation: "1",
-    demandeur: { prenom: "Blon Sadia", nom: "Emmanuel", fonction: "chef de département" },
+    demandeur: { prenom: "Blon Sadia", nom: "Emmanuel", fonction: "Stagiaire" },
     salle: "CARDLESS",
     dateReservation: "2026-05-14",
     heureDebut: "14:00",
@@ -92,7 +92,6 @@ const couleurBadgeTypeEvenement = (type: TypeEvenement): string => {
   return couleurs[type];
 };
 
-// ===== COMPOSANT =====
 export default function ValidationDemandesPage() {
   const [demandes, setDemandes] = useState<DemandeReservation[]>(demandesFictives);
   const [filtre, setFiltre] = useState<Filtre>("TOUS");
@@ -130,7 +129,6 @@ export default function ValidationDemandesPage() {
         </h1>
       </div>
 
-      {/* Carte qui contient la table */}
       <Card className="border-gray-200 bg-white">
         <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100">
           <div className="flex items-center gap-3">

@@ -14,6 +14,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  LayoutGridIcon,
+  Shield,
 } from "lucide-react";
 
 // ===== STRUCTURE DE LA NAVIGATION =====
@@ -29,7 +31,7 @@ const navigation = [
       },
       {
         label: "Sites",
-        href: "/espace/sites",
+        href: "/espace/site",
         icon: Building,
       },
       {
@@ -37,6 +39,11 @@ const navigation = [
         href: "/espace/dashboard",
         icon: LayoutDashboard,
       },
+      {
+        label: "Gestion des rôles",
+        href: "/espace/roles",
+        icon: Shield,
+      }
     ],
   },
   {

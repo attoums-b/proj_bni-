@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Search, MoreHorizontal, Shield } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Search, MoreHorizontal, Shield, Loader2 } from "lucide-react";
 
 import { Input } from "@/components/template/shadcnblocs/input";
 import { Button } from "@/components/template/shadcnblocs/button";
@@ -33,8 +33,12 @@ import {
   CardDescription,
 } from "@/components/template/shadcnblocs/card";
 
+
+
+import { apiGet } from "@/lib/api";
+
 // ============================================================
-// TYPES
+// TYPES (alignés sur les DTOs du backend)
 // ============================================================
 type User = {
   id: string;
@@ -43,139 +47,27 @@ type User = {
   lastName: string;
   email: string;
   position: string;
-  siteId: string;
-  siteName: string;
-  roleId: string;
-  roleName: string;
+  roleId: string | null;
+  roleName: string | null;
 };
 
 type Role = {
   id: string;
   nameRole: string;
+  description?: string;
 };
 
-type Site = {
-  id: string;
-  nameSite: string;
-  city: string;
+// Format Spring Data Page
+type PageResponse<T> = {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
 };
-
-// ============================================================
-// ⚠️ DONNÉES FICTIVES — À REMPLACER PAR L'API BACKEND
-// ============================================================
-// TODO: remplacer par fetch("http://localhost:8080/api/roles")
-const ROLES_FICTIFS: Role[] = [
-  { id: "role-1", nameRole: "DEMANDEUR" },
-  { id: "role-2", nameRole: "GESTIONNAIRE_SALLE" },
-  { id: "role-3", nameRole: "ADMIN_SITE" },
-];
-
-// TODO: remplacer par fetch("http://localhost:8080/api/sites")
-const SITES_FICTIFS: Site[] = [
-  { id: "site-1", nameSite: "Siège BNI Plateau", city: "Abidjan" },
-  { id: "site-2", nameSite: "Agence Cocody", city: "Abidjan" },
-  { id: "site-3", nameSite: "Agence Marcory", city: "Abidjan" },
-];
-
-// TODO: remplacer par fetch("http://localhost:8080/api/users/all")
-const USERS_FICTIFS: User[] = [
-  {
-    id: "user-1",
-    matricule: "BNI001",
-    firstName: "Amani",
-    lastName: "Koné",
-    email: "amani.kone@bni.ci",
-    position: "Administrateur système",
-    siteId: "site-1",
-    siteName: "Siège BNI Plateau",
-    roleId: "role-3",
-    roleName: "ADMIN_SITE",
-  },
-  {
-    id: "user-2",
-    matricule: "BNI002",
-    firstName: "Fatou",
-    lastName: "Diabaté",
-    email: "fatou.diabate@bni.ci",
-    position: "Ressources humaines",
-    siteId: "site-1",
-    siteName: "Siège BNI Plateau",
-    roleId: "role-1",
-    roleName: "DEMANDEUR",
-  },
-  {
-    id: "user-3",
-    matricule: "BNI003",
-    firstName: "Blon Sadia",
-    lastName: "Emmanuel",
-    email: "blon.emmanuel@bni.ci",
-    position: "Chef de département",
-    siteId: "site-1",
-    siteName: "Siège BNI Plateau",
-    roleId: "role-2",
-    roleName: "GESTIONNAIRE_SALLE",
-  },
-  {
-    id: "user-4",
-    matricule: "BNI004",
-    firstName: "Yao",
-    lastName: "Kouassi",
-    email: "yao.kouassi@bni.ci",
-    position: "Marketing",
-    siteId: "site-2",
-    siteName: "Agence Cocody",
-    roleId: "role-1",
-    roleName: "DEMANDEUR",
-  },
-  {
-    id: "user-5",
-    matricule: "BNI005",
-    firstName: "Aïcha",
-    lastName: "Traoré",
-    email: "aicha.traore@bni.ci",
-    position: "Comptabilité",
-    siteId: "site-2",
-    siteName: "Agence Cocody",
-    roleId: "role-1",
-    roleName: "DEMANDEUR",
-  },
-  {
-    id: "user-6",
-    matricule: "BNI006",
-    firstName: "Bakary",
-    lastName: "Ouattara",
-    email: "bakary.ouattara@bni.ci",
-    position: "Chef d'agence",
-    siteId: "site-3",
-    siteName: "Agence Marcory",
-    roleId: "role-2",
-    roleName: "GESTIONNAIRE_SALLE",
-  },
-  {
-    id: "user-7",
-    matricule: "BNI007",
-    firstName: "Marie",
-    lastName: "N'Guessan",
-    email: "marie.nguessan@bni.ci",
-    position: "Conseillère clientèle",
-    siteId: "site-3",
-    siteName: "Agence Marcory",
-    roleId: "role-1",
-    roleName: "DEMANDEUR",
-  },
-  {
-    id: "user-8",
-    matricule: "BNI008",
-    firstName: "Ibrahim",
-    lastName: "Diallo",
-    email: "ibrahim.diallo@bni.ci",
-    position: "Audit interne",
-    siteId: "site-1",
-    siteName: "Siège BNI Plateau",
-    roleId: "role-1",
-    roleName: "DEMANDEUR",
-  },
-];
 
 // ============================================================
 // HELPERS
@@ -184,11 +76,11 @@ function getInitials(firstName: string, lastName: string): string {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase();
 }
 
-function getRoleBadgeStyle(roleName: string): string {
+function getRoleBadgeStyle(roleName: string | null): string {
   switch (roleName) {
-    case "ADMIN_SITE":
+    case "SUPER_ADMIN":
       return "bg-red-50 text-red-700 border-red-200";
-    case "GESTIONNAIRE_SALLE":
+    case "ADMIN_SITE":
       return "bg-blue-50 text-blue-700 border-blue-200";
     case "DEMANDEUR":
       return "bg-gray-100 text-gray-700 border-gray-200";
@@ -197,11 +89,11 @@ function getRoleBadgeStyle(roleName: string): string {
   }
 }
 
-function getRoleLabel(roleName: string): string {
+function getRoleLabel(roleName: string | null): string {
   switch (roleName) {
-    case "ADMIN_SITE":
+    case "SUPER_ADMIN":
       return "Administrateur";
-    case "GESTIONNAIRE_SALLE":
+    case "ADMIN_SITE":
       return "Gestionnaire";
     case "DEMANDEUR":
       return "Demandeur";
@@ -214,25 +106,64 @@ function getRoleLabel(roleName: string): string {
 // COMPOSANT PRINCIPAL
 // ============================================================
 export default function UtilisateursPage() {
-  // ⚠️ DONNÉES FICTIVES en attendant le backend
-  // TODO: remplacer par useEffect + fetch comme dans la version connectée
-  const [users, setUsers] = useState<User[]>(USERS_FICTIFS);
-  const roles = ROLES_FICTIFS;
-  const sites = SITES_FICTIFS;
+  // ===== ÉTATS DES DONNÉES =====
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // ===== ÉTATS DES FILTRES =====
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [siteFilter, setSiteFilter] = useState<string>("all");
 
-  // ===== CHANGEMENT DE RÔLE (FICTIF) =====
-  // ⚠️ FONCTION FICTIVE — En production, fera un appel PATCH au backend
-  // TODO: remplacer par fetch PATCH /api/users/{userId}/role
+  // ===== RÔLES STATIQUES =====
+  // Les 3 rôles sont fixes dans ton application, donc on les définit ici
+  // (pas besoin d'appel API pour eux)
+  const roles: Role[] = [
+    { id: "role-1", nameRole: "DEMANDEUR" },
+    { id: "role-2", nameRole: "GESTIONNAIRE_SALLE" },
+    { id: "role-3", nameRole: "ADMIN_SITE" },
+  ];
+
+  // ============================================================
+  // CHARGEMENT DES UTILISATEURS DEPUIS L'API
+  // ============================================================
+  useEffect(() => {
+    async function loadUsers() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Appel à GET /api/users (retourne une Page)
+        // size=100 pour récupérer la plupart des utilisateurs en une fois
+        const data = await apiGet<PageResponse<User>>("/users?size=100");
+
+        // La vraie liste est dans data.content
+        setUsers(data.content);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Erreur lors du chargement des utilisateurs"
+        );
+        console.error("Erreur :", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadUsers();
+  }, []);
+
+  // ============================================================
+  // CHANGEMENT DE RÔLE (à connecter au backend plus tard)
+  // ============================================================
+  // ⚠️ FONCTION FICTIVE — Backend pas encore implémenté
+  // TODO: remplacer par apiPatch(`/users/${userId}/role`, { roleId: newRoleId })
   const handleChangeRole = (userId: string, newRoleId: string) => {
     const newRole = roles.find((r) => r.id === newRoleId);
     if (!newRole) return;
 
-    // Simulation : mise à jour locale uniquement (pas d'appel API)
+    // Simulation locale pour l'instant
     setUsers((prev) =>
       prev.map((u) =>
         u.id === userId
@@ -242,28 +173,32 @@ export default function UtilisateursPage() {
     );
 
     console.log(
-      `[FICTIF] Changement de rôle pour utilisateur ${userId} → ${newRole.nameRole}`
+      `[FICTIF] Changement de rôle : ${userId} → ${newRole.nameRole}`
     );
   };
 
-  // ===== FILTRAGE COMBINÉ =====
+  
+  
+  
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const searchLower = search.toLowerCase();
       const matchSearch =
         !search ||
-        user.firstName.toLowerCase().includes(searchLower) ||
-        user.lastName.toLowerCase().includes(searchLower) ||
-        user.matricule.toLowerCase().includes(searchLower) ||
-        user.email.toLowerCase().includes(searchLower);
+        user.firstName?.toLowerCase().includes(searchLower) ||
+        user.lastName?.toLowerCase().includes(searchLower) ||
+        user.matricule?.toLowerCase().includes(searchLower) ||
+        user.email?.toLowerCase().includes(searchLower);
 
       const matchRole = roleFilter === "all" || user.roleName === roleFilter;
-      const matchSite = siteFilter === "all" || user.siteId === siteFilter;
 
-      return matchSearch && matchRole && matchSite;
+      return matchSearch && matchRole;
     });
-  }, [users, search, roleFilter, siteFilter]);
+  }, [users, search, roleFilter]);
 
+  
+  
+  
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       {/* ===== EN-TÊTE ===== */}
@@ -282,15 +217,14 @@ export default function UtilisateursPage() {
           <div className="flex flex-col gap-1">
             <CardTitle>Liste des utilisateurs</CardTitle>
             <CardDescription>
-              {filteredUsers.length} utilisateur
-              {filteredUsers.length > 1 ? "s" : ""} trouvé
-              {filteredUsers.length > 1 ? "s" : ""}
+              {loading
+                ? "Chargement..."
+                : `${filteredUsers.length} utilisateur${filteredUsers.length > 1 ? "s" : ""} trouvé${filteredUsers.length > 1 ? "s" : ""}`}
             </CardDescription>
           </div>
 
-          {/* Barre de recherche + filtres */}
+          {/* Barre de recherche + filtre rôle */}
           <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center">
-            {/* Recherche */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -302,9 +236,8 @@ export default function UtilisateursPage() {
               />
             </div>
 
-            {/* Filtre par rôle */}
             <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-full md:w-[180px]">
+              <SelectTrigger className="w-full md:w-[200px]">
                 <SelectValue placeholder="Tous les rôles" />
               </SelectTrigger>
               <SelectContent>
@@ -316,31 +249,32 @@ export default function UtilisateursPage() {
                 ))}
               </SelectContent>
             </Select>
-
-            {/* Filtre par site */}
-            <Select value={siteFilter} onValueChange={setSiteFilter}>
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Tous les sites" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les sites</SelectItem>
-                {sites.map((site) => (
-                  <SelectItem key={site.id} value={site.id}>
-                    {site.nameSite}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </CardHeader>
 
         <CardContent className="px-0">
-          {/* ===== TABLE ===== */}
-          {filteredUsers.length === 0 ? (
+          {/* ===== ÉTAT : CHARGEMENT ===== */}
+          {loading ? (
+            <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Chargement des utilisateurs...
+            </div>
+          ) : error ? (
+            /* ===== ÉTAT : ERREUR ===== */
+            <div className="mx-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">
+              <p className="font-medium">Erreur de chargement</p>
+              <p className="mt-1">{error}</p>
+              <p className="mt-2 text-xs">
+                Vérifiez que le backend est démarré et accessible.
+              </p>
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            /* ===== ÉTAT : VIDE ===== */
             <div className="py-12 text-center text-sm text-muted-foreground">
               Aucun utilisateur trouvé
             </div>
           ) : (
+            /* ===== ÉTAT : TABLE ===== */
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -352,7 +286,6 @@ export default function UtilisateursPage() {
                       Matricule
                     </th>
                     <th className="px-6 py-3 text-left font-medium">Email</th>
-                    <th className="px-6 py-3 text-left font-medium">Site</th>
                     <th className="px-6 py-3 text-left font-medium">Rôle</th>
                     <th className="px-6 py-3 text-right font-medium">
                       Actions
@@ -392,11 +325,6 @@ export default function UtilisateursPage() {
                         {user.email}
                       </td>
 
-                      {/* Site */}
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {user.siteName || "—"}
-                      </td>
-
                       {/* Badge de rôle */}
                       <td className="px-6 py-4">
                         <Badge
@@ -423,7 +351,6 @@ export default function UtilisateursPage() {
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
 
-                            {/* Sous-menu : changer le rôle */}
                             <DropdownMenuSub>
                               <DropdownMenuSubTrigger>
                                 <Shield className="mr-2 h-4 w-4" />
@@ -431,7 +358,7 @@ export default function UtilisateursPage() {
                               </DropdownMenuSubTrigger>
                               <DropdownMenuSubContent>
                                 <DropdownMenuRadioGroup
-                                  value={user.roleId}
+                                  value={user.roleId ?? ""}
                                   onValueChange={(value) =>
                                     handleChangeRole(user.id, value)
                                   }

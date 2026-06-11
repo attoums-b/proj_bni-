@@ -1,3 +1,5 @@
+import RoleGuard from "@/components/personnalises/roleGuard"
+
 export default function Parametrage() {
   return (
     <div className="p-8">

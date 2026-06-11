@@ -86,11 +86,14 @@ async function apiCall<T>(
   }
 
   // Retourner les données (gérer le cas 204 No Content)
+  // Retourner les données (gérer le cas 204 No Content ou réponse vide)
   if (response.status === 204) {
     return null as T;
   }
 
-  return response.json();
+  // Vérifier s'il y a du contenu à lire avant de faire .json()
+  const text = await response.text();
+  return text ? JSON.parse(text) : (null as T);
 }
 
 // ============================================================
